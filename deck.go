@@ -5,12 +5,14 @@ import (
 	"fmt"
 )
 
+const DEFAULT_DECK_SIZE int = 52
+
 type Deck struct {
 	Cards []Card
 }
 
 func NewDeck() Deck {
-	cards := make([]Card, 0)
+	cards := make([]Card, 0, DEFAULT_DECK_SIZE)
 	newDeck := Deck{cards}
 	return newDeck
 }

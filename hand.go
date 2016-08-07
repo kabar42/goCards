@@ -12,7 +12,7 @@ type Hand struct {
 }
 
 func NewHand() Hand {
-	cards := make([]Card, 0)
+	cards := make([]Card, 0, DEFAULT_HAND_SIZE)
 	newHand := Hand{cards, DEFAULT_HAND_SIZE}
 	return newHand
 }
@@ -37,29 +37,27 @@ func (h *Hand) Full() bool {
 
 func GenAllHands(deck *Deck) []Hand {
 	h := NewHand()
-	allHands := make([]Hand, 0)
+	allHands := make([]Hand, 0, 2600000)
 
-	genHandsRecursive(deck, &h, &allHands)
+	genHandsRecursive(deck.Cards, &h, &allHands)
 
 	return allHands
 }
 
-func genHandsRecursive(deck *Deck, hand *Hand, allHands *[]Hand) {
+func genHandsRecursive(deck []Card, hand *Hand, allHands *[]Hand) {
 	if hand.Full() {
 		newHand := hand.Copy()
 		*allHands = append(*allHands, newHand)
-	} else if len(deck.Cards) != 0 {
-		nextCard := deck.Cards[0]
-		deckCopy := deck.Copy()
-		deckCopy.Remove(nextCard)
+	} else if len(deck) != 0 {
+		nextCard := deck[0]
 
 		newHand := hand.Copy()
 
 		// Check all paths that do NOT include this card
-		genHandsRecursive(&deckCopy, &newHand, allHands)
+		genHandsRecursive(deck[1:], &newHand, allHands)
 
 		// Check all paths that DO include this card
 		newHand.Append(nextCard)
-		genHandsRecursive(&deckCopy, &newHand, allHands)
+		genHandsRecursive(deck[1:], &newHand, allHands)
 	}
 }
