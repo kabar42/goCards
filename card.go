@@ -38,6 +38,21 @@ var Ranks = []RankT{
 	King,
 }
 
+// Used for sorting
+type RankArr []RankT
+
+func (r RankArr) Len() int {
+	return len(r)
+}
+
+func (r RankArr) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func (r RankArr) Less(i, j int) bool {
+	return r[i] < r[j]
+}
+
 func (r RankT) String() string {
 	var value string
 
