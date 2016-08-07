@@ -43,31 +43,31 @@ func (r RankT) String() string {
 
 	switch r {
 	case Ace:
-		value = "Ace"
+		value = "A"
 	case Two:
-		value = "Two"
+		value = "2"
 	case Three:
-		value = "Three"
+		value = "3"
 	case Four:
-		value = "Four"
+		value = "4"
 	case Five:
-		value = "Five"
+		value = "5"
 	case Six:
-		value = "Six"
+		value = "6"
 	case Seven:
-		value = "Seven"
+		value = "7"
 	case Eight:
-		value = "Eight"
+		value = "8"
 	case Nine:
-		value = "Nine"
+		value = "9"
 	case Ten:
-		value = "Ten"
+		value = "10"
 	case Jack:
-		value = "Jack"
+		value = "J"
 	case Queen:
-		value = "Queen"
+		value = "Q"
 	case King:
-		value = "King"
+		value = "K"
 	}
 
 	return value
@@ -94,13 +94,13 @@ func (s SuitT) String() string {
 
 	switch s {
 	case Hearts:
-		value = "Hearts"
+		value = "H"
 	case Clubs:
-		value = "Clubs"
+		value = "C"
 	case Diamonds:
-		value = "Diamonds"
+		value = "D"
 	case Spades:
-		value = "Spades"
+		value = "S"
 	}
 
 	return value
