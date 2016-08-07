@@ -35,7 +35,16 @@ func (h *Hand) Full() bool {
 	return len(h.Cards) >= h.Size
 }
 
-func GenAllHands(deck *Deck, hand *Hand, allHands *[]Hand) {
+func GenAllHands(deck *Deck) []Hand {
+	h := NewHand()
+	allHands := make([]Hand, 0)
+
+	genHandsRecursive(deck, &h, &allHands)
+
+	return allHands
+}
+
+func genHandsRecursive(deck *Deck, hand *Hand, allHands *[]Hand) {
 	if hand.Full() {
 		newHand := hand.Copy()
 		*allHands = append(*allHands, newHand)
@@ -47,10 +56,10 @@ func GenAllHands(deck *Deck, hand *Hand, allHands *[]Hand) {
 		newHand := hand.Copy()
 
 		// Check all paths that do NOT include this card
-		GenAllHands(&deckCopy, &newHand, allHands)
+		genHandsRecursive(&deckCopy, &newHand, allHands)
 
 		// Check all paths that DO include this card
 		newHand.Append(nextCard)
-		GenAllHands(&deckCopy, &newHand, allHands)
+		genHandsRecursive(&deckCopy, &newHand, allHands)
 	}
 }
