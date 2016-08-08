@@ -1,12 +1,13 @@
 package main
 
 import (
+	_ "fmt"
 	"sort"
 )
 
 type HandData struct {
-	suitCount map[SuitT]int
-	rankCount map[RankT]int
+	suitCount []int
+	rankCount []int
 }
 
 func GenAllHands(deck *Deck) []Hand {
@@ -58,24 +59,13 @@ func CountHandTypes(allHands *[]Hand) map[string]int {
 }
 
 func getHandData(h Hand) HandData {
-	s := make(map[SuitT]int, len(Suits))
-	r := make(map[RankT]int, len(Ranks))
+	s := make([]int, len(Suits))
+	r := make([]int, len(Ranks))
 	data := HandData{s, r}
 
 	for _, c := range h.Cards {
-		val, ok := data.suitCount[c.Suit]
-		if ok {
-			data.suitCount[c.Suit] = val + 1
-		} else {
-			data.suitCount[c.Suit] = 1
-		}
-
-		val, ok = data.rankCount[c.Rank]
-		if ok {
-			data.rankCount[c.Rank] = val + 1
-		} else {
-			data.rankCount[c.Rank] = 1
-		}
+		data.suitCount[int(c.Suit)] = data.suitCount[int(c.Suit)] + 1
+		data.rankCount[int(c.Rank)] = data.rankCount[int(c.Rank)] + 1
 	}
 
 	return data
@@ -83,49 +73,82 @@ func getHandData(h Hand) HandData {
 
 func determineHandType(data HandData) string {
 	var handType string = "no_pair"
+	classified := false
 	ranksPresent := getRanksPresent(data.rankCount)
 
-	for _, count := range data.suitCount {
-		// All cards have the same suit
-		if count == DEFAULT_HAND_SIZE {
-			if len(ranksPresent) == DEFAULT_HAND_SIZE {
-				if data.rankCount[Ten] == 1 &&
-					data.rankCount[Jack] == 1 &&
-					data.rankCount[Queen] == 1 &&
-					data.rankCount[King] == 1 &&
-					data.rankCount[Ace] == 1 {
-					handType = "royal_flush"
-					break
-				}
+	orderedRankCount := make([]int, len(Ranks))
+	for i, count := range data.rankCount {
+		orderedRankCount[i] = count
+	}
+	sort.Sort(RankArr(orderedRankCount))
 
-				if ranksAreSequential(ranksPresent) {
-					handType = "straight_flush"
-					break
-				}
-			}
+	lenRankCount := len(orderedRankCount)
+	lastRankCount := orderedRankCount[lenRankCount-1]
 
-			handType = "flush"
-			break
+	// All cards have the same suit
+	if countArrayContainsValue(data.suitCount, DEFAULT_HAND_SIZE) {
+		if data.rankCount[int(Ten)] == 1 &&
+			data.rankCount[int(Jack)] == 1 &&
+			data.rankCount[int(Queen)] == 1 &&
+			data.rankCount[int(King)] == 1 &&
+			data.rankCount[int(Ace)] == 1 {
+			handType = "royal_flush"
+			classified = true
 		}
 
-		if ranksAreSequential(ranksPresent) {
-			handType = "straight"
-			break
+		if !classified && ranksAreSequential(ranksPresent) {
+			handType = "straight_flush"
+			classified = true
+		}
+
+		if !classified {
+			handType = "flush"
+			classified = true
 		}
 	}
 
-	if rankMapContainsValue(data.rankCount, 4) {
+	if !classified && countArrayContainsValue(data.rankCount, 4) {
 		handType = "four_of_a_kind"
+		classified = true
+	}
+
+	if !classified && ranksAreSequential(ranksPresent) {
+		handType = "straight"
+		classified = true
+	}
+
+	if !classified && lastRankCount == 3 {
+		if lenRankCount > 1 && orderedRankCount[lenRankCount-2] == 2 {
+			handType = "full_house"
+			classified = true
+		}
+
+		if !classified {
+			handType = "three_of_a_kind"
+			classified = true
+		}
+	}
+
+	if !classified && lastRankCount == 2 {
+		if lenRankCount > 1 && orderedRankCount[lenRankCount-2] == 2 {
+			handType = "two_pair"
+			classified = true
+		}
+
+		if !classified {
+			handType = "one_pair"
+			classified = true
+		}
 	}
 
 	return handType
 }
 
-func getRanksPresent(counts map[RankT]int) []RankT {
-	ranks := make([]RankT, 0, DEFAULT_HAND_SIZE)
+func getRanksPresent(counts []int) []int {
+	ranks := make([]int, 0, DEFAULT_HAND_SIZE)
 
-	for r, _ := range counts {
-		if !rankArrayContains(ranks, r) {
+	for r, c := range counts {
+		if c > 0 {
 			ranks = append(ranks, r)
 		}
 	}
@@ -133,22 +156,9 @@ func getRanksPresent(counts map[RankT]int) []RankT {
 	return ranks
 }
 
-func rankArrayContains(ranks []RankT, rank RankT) bool {
+func countArrayContainsValue(counts []int, val int) bool {
 	found := false
-	for _, val := range ranks {
-		if val == rank {
-			found = true
-			break
-		}
-	}
-
-	return found
-}
-
-func rankMapContainsValue(rankCount map[RankT]int, val int) bool {
-	found := false
-
-	for _, v := range rankCount {
+	for _, v := range counts {
 		if v == val {
 			found = true
 			break

@@ -39,7 +39,7 @@ var Ranks = []RankT{
 }
 
 // Used for sorting
-type RankArr []RankT
+type RankArr []int
 
 func (r RankArr) Len() int {
 	return len(r)
