@@ -37,7 +37,7 @@ func genHandsRecursive(deck []Card, hand *Hand, allHands *[]Hand) {
 }
 
 func CountHandTypes(allHands *[]Hand) map[string]int {
-	typeCounts := make(map[string]int)
+	typeCounts := make(map[string]int, 10)
 
 	for _, hand := range *allHands {
 		// Get the counts for this hand
@@ -58,8 +58,8 @@ func CountHandTypes(allHands *[]Hand) map[string]int {
 }
 
 func getHandData(h Hand) HandData {
-	s := make(map[SuitT]int)
-	r := make(map[RankT]int)
+	s := make(map[SuitT]int, len(Suits))
+	r := make(map[RankT]int, len(Ranks))
 	data := HandData{s, r}
 
 	for _, c := range h.Cards {
@@ -86,8 +86,9 @@ func determineHandType(data HandData) string {
 	ranksPresent := getRanksPresent(data.rankCount)
 
 	for _, count := range data.suitCount {
-		if count == 5 {
-			if len(ranksPresent) == 5 {
+		// All cards have the same suit
+		if count == DEFAULT_HAND_SIZE {
+			if len(ranksPresent) == DEFAULT_HAND_SIZE {
 				if data.rankCount[Ten] == 1 &&
 					data.rankCount[Jack] == 1 &&
 					data.rankCount[Queen] == 1 &&
@@ -106,23 +107,25 @@ func determineHandType(data HandData) string {
 			handType = "flush"
 			break
 		}
+
+		if ranksAreSequential(ranksPresent) {
+			handType = "straight"
+			break
+		}
+	}
+
+	if rankMapContainsValue(data.rankCount, 4) {
+		handType = "four_of_a_kind"
 	}
 
 	return handType
 }
 
 func getRanksPresent(counts map[RankT]int) []RankT {
-	ranks := make([]RankT, 0)
+	ranks := make([]RankT, 0, DEFAULT_HAND_SIZE)
 
 	for r, _ := range counts {
-		found := false
-		for _, val := range ranks {
-			if val == r {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !rankArrayContains(ranks, r) {
 			ranks = append(ranks, r)
 		}
 	}
@@ -130,21 +133,52 @@ func getRanksPresent(counts map[RankT]int) []RankT {
 	return ranks
 }
 
+func rankArrayContains(ranks []RankT, rank RankT) bool {
+	found := false
+	for _, val := range ranks {
+		if val == rank {
+			found = true
+			break
+		}
+	}
+
+	return found
+}
+
+func rankMapContainsValue(rankCount map[RankT]int, val int) bool {
+	found := false
+
+	for _, v := range rankCount {
+		if v == val {
+			found = true
+			break
+		}
+	}
+
+	return found
+}
+
 func ranksAreSequential(ranks RankArr) bool {
 	areSeq := true
 	sort.Sort(ranks)
 
-	if len(ranks) < 2 {
+	if len(ranks) < 5 {
 		areSeq = false
 		return areSeq
 	}
 
+	if ranks[0] == Ace &&
+		ranks[1] == Ten &&
+		ranks[2] == Jack &&
+		ranks[3] == Queen &&
+		ranks[4] == King {
+		return areSeq
+	}
+
 	for i, val := range ranks {
-		if i > 0 {
-			if ranks[i-1] != val-1 {
-				areSeq = false
-				break
-			}
+		if i > 0 && ranks[i-1] != val-1 {
+			areSeq = false
+			break
 		}
 	}
 
