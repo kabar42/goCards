@@ -23,13 +23,13 @@ func genHandsRecursive(deck []Card, hand *Hand, allHands *[]Hand) {
 	if hand.Full() {
 		*allHands = append(*allHands, *hand)
 	} else if len(deck) != 0 {
-		// Check all paths that do NOT include this card
-		genHandsRecursive(deck[1:], hand, allHands)
-
 		// Check all paths that DO include this card
 		newHand := hand.Copy()
 		newHand.Append(deck[0])
 		genHandsRecursive(deck[1:], &newHand, allHands)
+
+		// Check all paths that do NOT include this card
+		genHandsRecursive(deck[1:], hand, allHands)
 	}
 }
 
@@ -37,17 +37,15 @@ func CountHandTypes(allHands *[]Hand) [LastHandType]int {
 	typeCounts := [LastHandType]int{}
 
 	for _, hand := range *allHands {
-		data := getHandData(&hand)
-		handType := determineHandType(&data)
+		data := GetHandData(&hand)
+		handType := DetermineHandType(&data)
 		typeCounts[handType] = typeCounts[handType] + 1
 	}
 
 	return typeCounts
 }
 
-func getHandData(h *Hand) HandData {
-	// s := make([]int, len(Suits))
-	// r := make([]int, len(Ranks))
+func GetHandData(h *Hand) HandData {
 	data := HandData{}
 
 	for _, c := range h.Cards {
@@ -58,7 +56,7 @@ func getHandData(h *Hand) HandData {
 	return data
 }
 
-func determineHandType(data *HandData) int {
+func DetermineHandType(data *HandData) int {
 	largestRankCount, secondLargestRankCount := 0, 0
 	for _, count := range data.rankCount {
 		if count > largestRankCount {
