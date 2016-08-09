@@ -6,8 +6,8 @@ import (
 )
 
 type HandData struct {
-	suitCount []int
-	rankCount []int
+	suitCount [LastSuit]int
+	rankCount [LastRank]int
 }
 
 func GenAllHands(deck *Deck) []Hand {
@@ -23,12 +23,11 @@ func genHandsRecursive(deck []Card, hand *Hand, allHands *[]Hand) {
 	if hand.Full() {
 		*allHands = append(*allHands, *hand)
 	} else if len(deck) != 0 {
-		newHand := hand.Copy()
-
 		// Check all paths that do NOT include this card
-		genHandsRecursive(deck[1:], &newHand, allHands)
+		genHandsRecursive(deck[1:], hand, allHands)
 
 		// Check all paths that DO include this card
+		newHand := hand.Copy()
 		newHand.Append(deck[0])
 		genHandsRecursive(deck[1:], &newHand, allHands)
 	}
@@ -38,18 +37,18 @@ func CountHandTypes(allHands *[]Hand) [LastHandType]int {
 	typeCounts := [LastHandType]int{}
 
 	for _, hand := range *allHands {
-		data := getHandData(hand)
-		handType := determineHandType(data)
+		data := getHandData(&hand)
+		handType := determineHandType(&data)
 		typeCounts[handType] = typeCounts[handType] + 1
 	}
 
 	return typeCounts
 }
 
-func getHandData(h Hand) HandData {
-	s := make([]int, len(Suits))
-	r := make([]int, len(Ranks))
-	data := HandData{s, r}
+func getHandData(h *Hand) HandData {
+	// s := make([]int, len(Suits))
+	// r := make([]int, len(Ranks))
+	data := HandData{}
 
 	for _, c := range h.Cards {
 		data.suitCount[int(c.Suit)] = data.suitCount[int(c.Suit)] + 1
@@ -59,7 +58,7 @@ func getHandData(h Hand) HandData {
 	return data
 }
 
-func determineHandType(data HandData) int {
+func determineHandType(data *HandData) int {
 	largestRankCount, secondLargestRankCount := 0, 0
 	for _, count := range data.rankCount {
 		if count > largestRankCount {
@@ -73,7 +72,7 @@ func determineHandType(data HandData) int {
 	ranksPresent := getRanksPresent(data.rankCount)
 
 	// All cards have the same suit
-	if countArrayContainsValue(data.suitCount, DEFAULT_HAND_SIZE) {
+	if suitArrayContainsValue(data.suitCount, DEFAULT_HAND_SIZE) {
 		if data.rankCount[int(Ten)] == 1 &&
 			data.rankCount[int(Jack)] == 1 &&
 			data.rankCount[int(Queen)] == 1 &&
@@ -89,7 +88,7 @@ func determineHandType(data HandData) int {
 		return Flush
 	}
 
-	if countArrayContainsValue(data.rankCount, 4) {
+	if rankArrayContainsValue(data.rankCount, 4) {
 		return FourOfAKind
 	}
 
@@ -116,7 +115,7 @@ func determineHandType(data HandData) int {
 	return NoPair
 }
 
-func getRanksPresent(counts []int) []int {
+func getRanksPresent(counts [LastRank]int) []int {
 	ranks := make([]int, 0, DEFAULT_HAND_SIZE)
 
 	for r, c := range counts {
@@ -128,7 +127,17 @@ func getRanksPresent(counts []int) []int {
 	return ranks
 }
 
-func countArrayContainsValue(counts []int, val int) bool {
+func rankArrayContainsValue(counts [LastRank]int, val int) bool {
+	for _, v := range counts {
+		if v == val {
+			return true
+		}
+	}
+
+	return false
+}
+
+func suitArrayContainsValue(counts [LastSuit]int, val int) bool {
 	for _, v := range counts {
 		if v == val {
 			return true
