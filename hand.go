@@ -6,6 +6,20 @@ import (
 
 const DEFAULT_HAND_SIZE int = 5
 
+const (
+	RoyalFlush = iota
+	StraightFlush
+	FourOfAKind
+	FullHouse
+	Flush
+	Straight
+	ThreeOfAKind
+	TwoPair
+	OnePair
+	NoPair
+	LastHandType
+)
+
 type Hand struct {
 	Cards []Card
 	Size  int

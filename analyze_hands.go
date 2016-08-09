@@ -37,22 +37,13 @@ func genHandsRecursive(deck []Card, hand *Hand, allHands *[]Hand) {
 	}
 }
 
-func CountHandTypes(allHands *[]Hand) map[string]int {
-	typeCounts := make(map[string]int, 10)
+func CountHandTypes(allHands *[]Hand) [LastHandType]int {
+	typeCounts := [LastHandType]int{}
 
 	for _, hand := range *allHands {
-		// Get the counts for this hand
 		data := getHandData(hand)
-
-		// Classify the hand
 		handType := determineHandType(data)
-
-		// Add the data to typeCounts
-		if val, ok := typeCounts[handType]; ok == true {
-			typeCounts[handType] = val + 1
-		} else {
-			typeCounts[handType] = 1
-		}
+		typeCounts[handType] = typeCounts[handType] + 1
 	}
 
 	return typeCounts
@@ -71,9 +62,7 @@ func getHandData(h Hand) HandData {
 	return data
 }
 
-func determineHandType(data HandData) string {
-	var handType string = "no_pair"
-	classified := false
+func determineHandType(data HandData) int {
 	ranksPresent := getRanksPresent(data.rankCount)
 
 	orderedRankCount := make([]int, len(Ranks))
@@ -92,56 +81,41 @@ func determineHandType(data HandData) string {
 			data.rankCount[int(Queen)] == 1 &&
 			data.rankCount[int(King)] == 1 &&
 			data.rankCount[int(Ace)] == 1 {
-			handType = "royal_flush"
-			classified = true
+			return RoyalFlush
 		}
 
-		if !classified && ranksAreSequential(ranksPresent) {
-			handType = "straight_flush"
-			classified = true
+		if ranksAreSequential(ranksPresent) {
+			return StraightFlush
 		}
 
-		if !classified {
-			handType = "flush"
-			classified = true
-		}
+		return Flush
 	}
 
-	if !classified && countArrayContainsValue(data.rankCount, 4) {
-		handType = "four_of_a_kind"
-		classified = true
+	if countArrayContainsValue(data.rankCount, 4) {
+		return FourOfAKind
 	}
 
-	if !classified && ranksAreSequential(ranksPresent) {
-		handType = "straight"
-		classified = true
+	if ranksAreSequential(ranksPresent) {
+		return Straight
 	}
 
-	if !classified && lastRankCount == 3 {
+	if lastRankCount == 3 {
 		if lenRankCount > 1 && orderedRankCount[lenRankCount-2] == 2 {
-			handType = "full_house"
-			classified = true
+			return FullHouse
 		}
 
-		if !classified {
-			handType = "three_of_a_kind"
-			classified = true
-		}
+		return ThreeOfAKind
 	}
 
-	if !classified && lastRankCount == 2 {
+	if lastRankCount == 2 {
 		if lenRankCount > 1 && orderedRankCount[lenRankCount-2] == 2 {
-			handType = "two_pair"
-			classified = true
+			return TwoPair
 		}
 
-		if !classified {
-			handType = "one_pair"
-			classified = true
-		}
+		return OnePair
 	}
 
-	return handType
+	return NoPair
 }
 
 func getRanksPresent(counts []int) []int {
