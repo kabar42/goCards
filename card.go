@@ -20,6 +20,7 @@ const (
 	Jack
 	Queen
 	King
+	LastRank
 )
 
 var Ranks = []RankT{
@@ -95,6 +96,7 @@ const (
 	Clubs
 	Diamonds
 	Spades
+	LastSuit
 )
 
 var Suits = []SuitT{
